@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaCapture - Note Taking App</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --light-text: #767676;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #fafafa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .content-type-selector {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .content-type {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .content-type.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .note-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .note-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .note-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .note-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .note-date {
+            color: var(--light-text);
+            font-size: 12px;
+        }
+        
+        .note-content {
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+        
+        .note-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .tag {
+            background-color: var(--secondary-color);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--light-text);
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">IdeaCapture</div>
+            <button class="btn" id="newNoteBtn">+ New Note</button>
+        </header>
+        
+        <div class="content-type-selector">
+            <div class="content-type active" data-type="text">Text Note</div>
+            <div class="content-type" data-type="link">Link</div>
+            <div class="content-type" data-type="image">Image</div>
+            <div class="content-type" data-type="audio">Voice Recording</div>
+        </div>
+        
+        <div class="note-form" id="noteForm">
+            <div class="form-group">
+                <label for="noteTitle">Title</label>
+                <input type="text" id="noteTitle" placeholder="Add a title...">
+            </div>
+            
+            <div class="form-group" id="textNoteGroup">
+                <label for="noteContent">Content</label>
+                <textarea id="noteContent" placeholder="Write your idea here..."></textarea>
+            </div>
+            
+            <div class="form-group hidden" id="linkNoteGroup">
+                <label for="noteLink">URL</label>
+                <input type="url" id="noteLink" placeholder="https://example.com">
+            </div>
+            
+            <div class="form-group hidden" id="imageNoteGroup">
+                <label for="noteImage">Upload Image</label>
+                <input type="file" id="noteImage" accept="image/*">
+            </div>
+            
+            <div class="form-group hidden" id="audioNoteGroup">
+                <label for="noteAudio">Record Audio</label>
+                <button class="btn" id="recordBtn">Start Recording</button>
+                <audio id="audioPlayback" controls class="hidden"></audio>
+            </div>
+            
+            <div class="form-group">
+                <label for="noteTags">Tags (comma separated)</label>
+                <input type="text" id="noteTags" placeholder="product, idea, feature">
+            </div>
+            
+            <button class="btn" id="saveNoteBtn">Save Idea</button>
+        </div>
+        
+        <div class="notes-grid" id="notesGrid">
+            <!-- Notes will be displayed here -->
+            <div class="note-card">
+                <div class="note-header">
+                    <div class="note-title">Sample Product Idea</div>
+                    <div class="note-date">Today</div>
+                </div>
+                <div class="note-content">
+                    This is a sample note showing how your ideas will appear in the app.
+                </div>
+                <div class="note-tags">
+                    <span class="tag">sample</span>
+                    <span class="tag">idea</span>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            IdeaCapture - A Product Manager Learning Project
+        </footer>
+    </div>
+
+    <script>
+        // Content type switching
+        const contentTypes = document.querySelectorAll('.content-type');
+        const inputGroups = {
+            text: document.getElementById('textNoteGroup'),
+            link: document.getElementById('linkNoteGroup'),
+            image: document.getElementById('imageNoteGroup'),
+            audio: document.getElementById('audioNoteGroup')
+        };
+        
+        contentTypes.forEach(type => {
+            type.addEventListener('click', () => {
+                // Update active tab
+                contentTypes.forEach(t => t.classList.remove('active'));
+                type.classList.add('active');
+                
+                // Show relevant input group
+                const selectedType = type.getAttribute('data-type');
+                Object.keys(inputGroups).forEach(key => {
+                    if (key === selectedType) {
+                        inputGroups[key].classList.remove('hidden');
+                    } else {
+                        inputGroups[key].classList.add('hidden');
+                    }
+                });
+            });
+        });
+        
+        // Simple local storage implementation for demo
+        document.getElementById('saveNoteBtn').addEventListener('click', () => {
+            const title = document.getElementById('noteTitle').value;
+            const content = document.getElementById('noteContent').value;
+            const tags = document.getElementById('noteTags').value;
+            
+            if (title && content) {
+                // Create note element
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note-card';
+                noteElement.innerHTML = `
+                    <div class="note-header">
+                        <div class="note-title">${title}</div>
+                        <div class="note-date">Just now</div>
+                    </div>
+                    <div class="note-content">${content}</div>
+                    <div class="note-tags">
+                        ${tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                    </div>
+                `;
+                
+                // Add to grid
+                document.getElementById('notesGrid').prepend(noteElement);
+                
+                // Clear form
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteContent').value = '';
+                document.getElementById('noteTags').value = '';
+                
+                alert('Note saved! (This is just a demo - will connect to Supabase later)');
+            } else {
+                alert('Please add at least a title and content');
+            }
+        });
+    </script>
+</body>
+</html>
