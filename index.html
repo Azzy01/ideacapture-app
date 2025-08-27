@@ -305,11 +305,10 @@ function displayNotes() {
     const notesGrid = document.getElementById('notesGrid');
     const notes = getNotesFromStorage();
     
-    // Clear existing notes (except the sample)
-    notesGrid.innerHTML = notesGrid.querySelector('.note-card') ? 
-        notesGrid.innerHTML : '';
+    // CLEAR the grid completely before re-rendering
+    notesGrid.innerHTML = '';
     
-    // Add notes from storage
+    // Add all notes from storage
     notes.forEach(note => {
         const noteElement = createNoteElement(note);
         notesGrid.prepend(noteElement);
