@@ -149,6 +149,32 @@ updateTagCloud();
 // Add event listener for clear filter button
 document.getElementById('clearFilterBtn').addEventListener('click', clearFilter);
 
+// Content type switching - This makes tabs clickable!
+const contentTypes = document.querySelectorAll('.content-type');
+const inputGroups = {
+    text: document.getElementById('textNoteGroup'),
+    link: document.getElementById('linkNoteGroup'), 
+    image: document.getElementById('imageNoteGroup'),
+    audio: document.getElementById('audioNoteGroup')
+};
+
+contentTypes.forEach(type => {
+    type.addEventListener('click', () => {
+        contentTypes.forEach(t => t.classList.remove('active'));
+        type.classList.add('active');
+        
+        const selectedType = type.getAttribute('data-type');
+        Object.keys(inputGroups).forEach(key => {
+            inputGroups[key].classList.toggle('hidden', key !== selectedType);
+        });
+        
+        // Clear image preview when switching away from image
+        if (selectedType !== 'image') {
+            clearImagePreview();
+        }
+    });
+});
+
 // Load existing notes when page loads
 displayNotes();
 
@@ -239,4 +265,25 @@ document.querySelectorAll('.tag-cloud .tag').forEach(el => {
 
 // Show all notes
 displayNotes();
+}
+
+
+function clearImagePreview() {
+    const previewDiv = document.getElementById('imagePreview');
+    if (previewDiv) {
+        previewDiv.classList.add('hidden');
+        previewDiv.innerHTML = '';
+    }
+    
+    const progressDiv = document.getElementById('uploadProgress');
+    if (progressDiv) {
+        progressDiv.classList.add('hidden');
+    }
+    
+    const fileInput = document.getElementById('noteImage');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    window.currentImageUrl = null;
 }
