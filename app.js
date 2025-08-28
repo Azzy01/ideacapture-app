@@ -1,3 +1,52 @@
+// ===== SUPABASE SETUP =====
+let supabase = null;
+
+function initializeSupabase() {
+    try {
+        const SUPABASE_URL = 'https://fdwxcunlytbhdnnjzgua.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkd3hjdW5seXRiaGRubmp6Z3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyOTQ3MjksImV4cCI6MjA3MTg3MDcyOX0.WqQROmzPJcfzZVoRTW2MFjryulKvw7IWGHKnaphCEcU';
+        
+        // Check if Supabase library is loaded
+        if (typeof window.supabase !== 'undefined') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase initialized successfully!');
+            return true;
+        } else {
+            console.log('Supabase library not loaded yet');
+            return false;
+        }
+    } catch (error) {
+        console.error('Supabase initialization failed:', error);
+        return false;
+    }
+}
+
+async function getSupabase() {
+    if (!supabase) {
+        // Initialize if not already done
+        if (!initializeSupabase()) {
+            throw new Error('Supabase failed to initialize');
+        }
+    }
+    return supabase;
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Try to initialize Supabase
+    setTimeout(() => {
+        if (initializeSupabase()) {
+            console.log('Supabase ready to use');
+        } else {
+            console.log('Supabase will be initialized when needed');
+        }
+    }, 1000);
+    
+    // YOUR EXISTING WORKING CODE CONTINUES HERE...
+    displayNotes();
+    // ... etc ...
+});
+
 
 // ===== LOCAL STORAGE FUNCTIONS =====
 function saveNoteToStorage(note) {
