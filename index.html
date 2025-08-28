@@ -41,7 +41,17 @@
             
             <div class="form-group hidden" id="imageNoteGroup">
                 <label for="noteImage">Upload Image</label>
-                <input type="file" id="noteImage" accept="image/*">
+                <input type="file" id="noteImage" accept="image/*" style="display: none;">
+                <button type="button" class="btn" onclick="document.getElementById('noteImage').click()">
+                    Choose Image
+                </button>
+                <div id="imagePreview" class="image-preview hidden"></div>
+                <div id="uploadProgress" class="upload-progress hidden">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span>Uploading...</span>
+                </div>
             </div>
             
             <div class="form-group hidden" id="audioNoteGroup">
