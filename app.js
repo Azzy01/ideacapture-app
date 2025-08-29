@@ -50,24 +50,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ===== LOCAL STORAGE FUNCTIONS =====
 function saveNoteToStorage(note) {
-// 1. Get existing notes from storage
-const existingNotes = getNotesFromStorage();
-
-// 2. Add new note with unique ID and timestamp
-const newNote = {
-id: Date.now(), // Simple unique ID
-type: 'text',
-title: note.title,
-content: note.content,
-tags: note.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-createdAt: new Date().toISOString()
-};
-
-// 3. Add to array and save back to storage
-existingNotes.push(newNote);
-localStorage.setItem('ideacapture-notes', JSON.stringify(existingNotes));
-
-return newNote;
+    const existingNotes = getNotesFromStorage();
+    
+    // FIX: Handle both array and string tags
+    const tagsArray = Array.isArray(note.tags) 
+        ? note.tags 
+        : note.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+    
+    const newNote = {
+        id: Date.now(),
+        type: note.type || 'text',
+        title: note.title,
+        content: note.content,
+        tags: tagsArray,  // ← Now this is always an array
+        createdAt: new Date().toISOString()
+    };
+    
+    existingNotes.push(newNote);
+    localStorage.setItem('ideacapture-notes', JSON.stringify(existingNotes));
+    return newNote;
 }
 
 function getNotesFromStorage() {
@@ -140,6 +141,68 @@ displayNotes(); // Refresh the display
 }
 }
 
+// ===== IMAGE UPLOAD FUNCTIONS =====
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Show preview
+    showImagePreview(file);
+    
+    // Show upload progress
+    const progressDiv = document.getElementById('uploadProgress');
+    progressDiv.classList.remove('hidden');
+    
+    try {
+        // Upload to Supabase
+        const { data, error } = await supabase.storage
+            .from('note-images')
+            .upload(`images/${Date.now()}_${file.name}`, file);
+        
+        if (error) throw error;
+        
+        // Get public URL
+        const { data: urlData } = supabase.storage
+            .from('note-images')
+            .getPublicUrl(data.path);
+        
+        // Store the image URL for when note is saved
+        window.currentImageUrl = urlData.publicUrl;
+        
+        // Hide progress, show success
+        progressDiv.classList.add('hidden');
+        alert('Image uploaded successfully! Click "Save Idea" to save the note.');
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        progressDiv.classList.add('hidden');
+        alert('Error uploading image: ' + error.message);
+    }
+}
+
+function showImagePreview(file) {
+    const previewDiv = document.getElementById('imagePreview');
+    previewDiv.classList.remove('hidden');
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewDiv.innerHTML = `<img src="${e.target.result}" alt="Image preview">`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearImagePreview() {
+    const previewDiv = document.getElementById('imagePreview');
+    previewDiv.classList.add('hidden');
+    previewDiv.innerHTML = '';
+    
+    const progressDiv = document.getElementById('uploadProgress');
+    progressDiv.classList.add('hidden');
+    
+    document.getElementById('noteImage').value = '';
+    window.currentImageUrl = null;
+}
+
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -180,31 +243,39 @@ displayNotes();
 
 // Update save button handler
 document.getElementById('saveNoteBtn').addEventListener('click', function() {
-const title = document.getElementById('noteTitle').value.trim();
-const content = document.getElementById('noteContent').value.trim();
-const tags = document.getElementById('noteTags').value.trim();
-
-if (title && content) {
-    const note = { title, content, tags };
-    saveNoteToStorage(note);
+    const title = document.getElementById('noteTitle').value.trim();
+    const content = document.getElementById('noteContent').value.trim();
+    const tags = document.getElementById('noteTags').value.trim();
     
-    // Clear form
-    document.getElementById('noteTitle').value = '';
-    document.getElementById('noteContent').value = '';
-    document.getElementById('noteTags').value = '';
-    
-    // Refresh display
-    displayNotes();
-    
-     // ← ADD THIS LINE → 
-    updateTagCloud(); // Update tag cloud with new tags
-
-    // Show success feedback
-    alert('Note saved successfully!');
-} else {
-    alert('Please add both a title and content for your note.');
-}
+    if (title && content) {
+        // Simple text note only for testing
+        const note = {
+            id: Date.now(),
+            type: 'text',
+            title,
+            content,
+            tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+            createdAt: new Date().toISOString()
+        };
+        
+        saveNoteToStorage(note);
+        
+        // Clear form and refresh
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteContent').value = '';
+        document.getElementById('noteTags').value = '';
+        displayNotes();
+        updateTagCloud();
+        
+        alert('Note saved successfully!');
+    } else {
+        alert('Please add both title and content');
+    }
 });
+
+
+document.getElementById('noteImage').addEventListener('change', handleImageUpload);
+
 });
 
 // ===== TAG FILTERING FUNCTIONS =====
